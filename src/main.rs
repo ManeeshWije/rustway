@@ -1,14 +1,56 @@
 use std::{
-    io::{self, Write},
+    collections::HashMap,
+    env,
+    fs::read_to_string,
+    io::{self, Error, ErrorKind, Write},
     thread,
     time::{self, Duration},
 };
 
 const SLEEP_FOR: Duration = time::Duration::from_millis(100);
 const GREEN_SQUARE: &str = "\x1b[48;2;0;255;0m  \x1b[0m";
-// minY, minX
-// maxY, maxX
-const DIMENSIONS: [(i32, i32); 2] = [(0, 0), (400, 400)];
+// minX, minY
+// maxX, maxY
+const DIMENSIONS: [(i32, i32); 2] = [(0, 0), (1000, 1000)];
+
+fn parse_file(filename: &str) -> Result<Vec<(i32, i32)>, Error> {
+    let data: Vec<String> = read_to_string(filename)?
+        .lines()
+        .map(String::from)
+        .collect();
+
+    let mut coords: Vec<(i32, i32)> = Vec::new();
+    for coord in data.iter() {
+        let parts: Vec<&str> = coord.split(",").collect();
+        if parts.len() != 2 {
+            return Err(Error::new(
+                ErrorKind::InvalidData,
+                "Invalid coordinate format",
+            ));
+        }
+
+        println!("{:?}", parts);
+
+        let x = parts[0]
+            .trim()
+            .parse::<i32>()
+            .expect("ERROR: Could not parse x coordinate as int");
+        let y = parts[1]
+            .trim()
+            .parse::<i32>()
+            .expect("ERROR: Could not parse x coordinate as int");
+
+        coords.push((x, y));
+    }
+    Ok(coords)
+}
+
+fn in_bounds(x: i32, y: i32) -> bool {
+    if x >= DIMENSIONS[0].0 && x < DIMENSIONS[1].0 && y >= DIMENSIONS[0].1 && y < DIMENSIONS[1].1 {
+        return true;
+    }
+    return false;
+}
 
 fn get_nbors(x: i32, y: i32) -> Vec<(i32, i32)> {
     let mut neighbors = Vec::with_capacity(8); // There are exactly 8 possible neighbors
@@ -40,7 +82,7 @@ fn get_nbors(x: i32, y: i32) -> Vec<(i32, i32)> {
 // Any dead cell with exactly three live neighbours becomes a live cell, as if by reproduction.
 fn compute_next(curr_alive: &Vec<(i32, i32)>) -> Vec<(i32, i32)> {
     let mut next = Vec::new();
-    let mut neighbor_count: std::collections::HashMap<(i32, i32), i32> = std::collections::HashMap::new();
+    let mut neighbor_count: HashMap<(i32, i32), i32> = HashMap::new();
 
     // Count neighbors for all live cells
     for &(x, y) in curr_alive.iter() {
@@ -62,12 +104,19 @@ fn compute_next(curr_alive: &Vec<(i32, i32)>) -> Vec<(i32, i32)> {
 }
 
 fn main() {
-    let mut curr_alive: Vec<(i32, i32)> = vec![(21, 21), (22, 21), (23, 21), (23, 22), (22, 23)];
+    let args: Vec<String> = env::args().collect();
+
+    if args.len() != 2 {
+        panic!("ERROR: invalid command line arguments. Usage: cargo run -- <coords_file>");
+    }
+
+    let mut starting_coords: Vec<(i32, i32)> =
+        parse_file(&args[1]).expect("ERROR: invalid file format, please see example file");
 
     loop {
         thread::sleep(SLEEP_FOR);
         println!("{esc}c", esc = 27 as char);
-        for pos in curr_alive.iter() {
+        for pos in starting_coords.iter() {
             let x = pos.0;
             let y = pos.1;
             if in_bounds(x, y) {
@@ -80,16 +129,9 @@ fn main() {
                 );
             }
         }
-        curr_alive = compute_next(&mut curr_alive);
+        starting_coords = compute_next(&mut starting_coords);
         io::stdout().flush().unwrap();
     }
-}
-
-fn in_bounds(x: i32, y: i32) -> bool {
-    if x >= DIMENSIONS[0].0 && x < DIMENSIONS[1].0 && y >= DIMENSIONS[0].1 && y < DIMENSIONS[1].1 {
-        return true;
-    }
-    return false;
 }
 
 #[cfg(test)]
