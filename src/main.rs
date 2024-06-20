@@ -14,10 +14,12 @@ const GREEN_SQUARE: &str = "\x1b[48;2;0;255;0m  \x1b[0m";
 const DIMENSIONS: [(i32, i32); 2] = [(0, 0), (1000, 1000)];
 
 fn parse_file(filename: &str) -> Result<Vec<(i32, i32)>, Error> {
-    let data: Vec<String> = read_to_string(filename)?
+    let mut data: Vec<String> = read_to_string(filename)?
         .lines()
         .map(String::from)
         .collect();
+
+    data.retain(|s| s != "");
 
     let mut coords: Vec<(i32, i32)> = Vec::new();
     for coord in data.iter() {
