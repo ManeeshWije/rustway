@@ -31,8 +31,6 @@ fn parse_file(filename: &str) -> Result<Vec<(i32, i32)>, Error> {
             ));
         }
 
-        println!("{:?}", parts);
-
         let x = parts[0]
             .trim()
             .parse::<i32>()
@@ -40,7 +38,7 @@ fn parse_file(filename: &str) -> Result<Vec<(i32, i32)>, Error> {
         let y = parts[1]
             .trim()
             .parse::<i32>()
-            .expect("ERROR: Could not parse x coordinate as int");
+            .expect("ERROR: Could not parse y coordinate as int");
 
         coords.push((x, y));
     }
