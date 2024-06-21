@@ -93,10 +93,10 @@ fn compute_next(curr_alive: &Vec<(i32, i32)>) -> Vec<(i32, i32)> {
     }
 
     // Determine next generation based on rules
-    for (cell, &count) in &neighbor_count {
+    for (&cell, &count) in &neighbor_count {
         if count == 3 || (count == 2 && curr_alive.contains(&cell)) {
             // Cell survives or becomes alive in next generation
-            next.push(*cell);
+            next.push(cell);
         }
     }
 
