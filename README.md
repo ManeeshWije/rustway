@@ -17,4 +17,4 @@ x,y
 
 > NOTE: -x = left, +x = right, -y = up, +y = down
 
-Once you have this file created, you can simply run `cargo run -- starting_coords`
+Once you have this file created, you can simply run `cargo run -- glider_gun`
